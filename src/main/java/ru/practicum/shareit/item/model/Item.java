@@ -1,14 +1,11 @@
 package ru.practicum.shareit.item.model;
 
+import lombok.Builder;
 import lombok.Data;
-import lombok.Value;
-import lombok.experimental.NonFinal;
-import ru.practicum.shareit.booking.StatusType;
 import ru.practicum.shareit.requests.ItemRequest;
-import ru.practicum.shareit.user.User;
+import ru.practicum.shareit.user.model.User;
 
 /**
- * // TODO .
  * id — уникальный идентификатор вещи;
  * name — краткое название;
  * description — развёрнутое описание;
@@ -16,15 +13,15 @@ import ru.practicum.shareit.user.User;
  * owner — владелец вещи;
  * request — если вещь была создана по запросу другого пользователя, то в этом
  * поле будет храниться ссылка на соответствующий запрос.
- *
  */
 
-@Value
+@Data
+@Builder
 public class Item {
-    @NonFinal long id;
+    long id;
     String name;
     String description;
-    boolean available;
+    Boolean available;
     User owner;
     ItemRequest request;
 }
