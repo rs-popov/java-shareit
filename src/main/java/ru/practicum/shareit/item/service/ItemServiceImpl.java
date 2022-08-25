@@ -14,7 +14,7 @@ import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
@@ -79,12 +79,10 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public List<ItemDto> searchItems(String query) {
         if (query.isEmpty() || query.isBlank()) {
-            return new ArrayList<>();
+            return Collections.emptyList();
         } else {
             return itemRepository.getAllItems().stream()
-                    .filter(item -> item.getDescription().toLowerCase(Locale.ROOT).contains(query.toLowerCase()) ||
-                            item.getName().toLowerCase(Locale.ROOT).contains(query.toLowerCase()))
-                    .filter(item -> item.getAvailable().equals(true))
+                    .filter(item -> searchInNameAndDesc(item, query))
                     .map(ItemMapper::toItemDto)
                     .collect(Collectors.toList());
         }
@@ -100,5 +98,11 @@ public class ItemServiceImpl implements ItemService {
         if (itemDto.getAvailable() == null) {
             throw new BadRequestException("Отсутствует статус.");
         }
+    }
+
+    private boolean searchInNameAndDesc(Item item, String query) {
+        return (item.getDescription().toLowerCase(Locale.ROOT).contains(query.toLowerCase()) ||
+                item.getName().toLowerCase(Locale.ROOT).contains(query.toLowerCase())) &&
+                item.getAvailable().equals(true);
     }
 }

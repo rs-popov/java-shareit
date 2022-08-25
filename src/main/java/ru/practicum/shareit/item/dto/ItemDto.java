@@ -9,8 +9,8 @@ import lombok.*;
 @Value
 @Builder
 public class ItemDto {
-    long id;
-    String name;
-    String description;
-    Boolean available;
+    private long id;
+    private String name;
+    private String description;
+    private Boolean available;
 }
