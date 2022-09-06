@@ -1,9 +1,9 @@
 package ru.practicum.shareit.item.model;
 
-import lombok.Builder;
-import lombok.Data;
-import ru.practicum.shareit.requests.ItemRequest;
+import lombok.*;
 import ru.practicum.shareit.user.model.User;
+
+import javax.persistence.*;
 
 /**
  * id — уникальный идентификатор вещи;
@@ -14,14 +14,38 @@ import ru.practicum.shareit.user.model.User;
  * request — если вещь была создана по запросу другого пользователя, то в этом
  * поле будет храниться ссылка на соответствующий запрос.
  */
-
 @Data
 @Builder
+@RequiredArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "items")
 public class Item {
-    private long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "name", nullable = false)
     private String name;
+
+    @Column(name = "description")
     private String description;
+
+    @Column(name = "is_available")
     private Boolean available;
+
+    @ManyToOne
+    @JoinColumn(name = "owner_id", referencedColumnName = "id")
     private User owner;
-    private ItemRequest request;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Item)) return false;
+        return id != null && id.equals(((Item) o).getId());
+    }
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

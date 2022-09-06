@@ -23,55 +23,47 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserDto> getAllUsers() {
-        return userRepository.getAllUsers().stream()
+        return userRepository.findAll().stream()
                 .map(UserMapper::toUserDto)
                 .collect(Collectors.toList());
     }
 
     @Override
     public UserDto getUserById(long id) {
-        User user = userRepository.getUserById(id)
-                .orElseThrow(() -> new ObjectNotFoundException("Пользователь не найден."));
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ObjectNotFoundException("Пользователь c id=" + id + "не найден."));
         return UserMapper.toUserDto(user);
     }
 
     @Override
     public UserDto createUser(UserDto userDto) {
-        validate(userDto);
-        User user = userRepository.createUser(UserMapper.fromUserDto(userDto));
+        if (userDto.getEmail() == null || userDto.getEmail().isEmpty()) {
+            throw new BadRequestException("Не указана почта пользователя.");
+        }
+        User user = userRepository.save(UserMapper.fromUserDto(userDto));
         return UserMapper.toUserDto(user);
     }
 
     @Override
     public UserDto updateUser(long id, UserDto userDto) {
-        User userUpd = userRepository.getUserById(id)
-                .orElseThrow(() -> new ObjectNotFoundException("Пользователь не найден."));
+        User userUpd = userRepository.findById(id)
+                .orElseThrow(() -> new ObjectNotFoundException("Пользователь c id=" + id + "не найден."));
         if (userDto.getName() != null) {
             userUpd.setName(userDto.getName());
         }
         if (userDto.getEmail() != null && validateEmail(userDto.getEmail())) {
             userUpd.setEmail(userDto.getEmail());
         }
-        return UserMapper.toUserDto(userRepository.updateUser(userUpd));
+        return UserMapper.toUserDto(userRepository.save(userUpd));
     }
 
     @Override
     public void deleteUser(long id) {
-        userRepository.deleteUser(id);
-    }
-
-    private void validate(UserDto userDto) {
-        if (userDto.getEmail() == null || userDto.getEmail().isEmpty()) {
-            throw new BadRequestException("Не указана почта пользователя.");
-        }
-        validateEmail(userDto.getEmail());
-        if (getAllUsers().contains(userDto)) {
-            throw new ValidationException("Пользователь уже добавлен.");
-        }
+        userRepository.deleteById(id);
     }
 
     private boolean validateEmail(String email) {
-        if (userRepository.getAllUsers().stream()
+        if (userRepository.findAll().stream()
                 .anyMatch(u -> u.getEmail().toLowerCase(Locale.ROOT).equals(email.toLowerCase()))) {
             throw new ValidationException("Пользователь с почтой " + email + " уже добавлен.");
         } else return true;

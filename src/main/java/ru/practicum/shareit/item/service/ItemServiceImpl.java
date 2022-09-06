@@ -4,21 +4,29 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.StatusType;
+import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.item.comment.dto.CommentDto;
+import ru.practicum.shareit.item.comment.dto.CommentMapper;
+import ru.practicum.shareit.item.comment.model.Comment;
+import ru.practicum.shareit.item.comment.repository.CommentRepository;
 import ru.practicum.shareit.exceptions.BadRequestException;
 import ru.practicum.shareit.exceptions.ForbiddenAccessException;
 import ru.practicum.shareit.exceptions.ObjectNotFoundException;
-import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemInputDto;
 import ru.practicum.shareit.item.dto.ItemMapper;
+import ru.practicum.shareit.item.dto.ItemOutputDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
+import java.util.Objects;
 import java.util.stream.Collectors;
-
 
 @Slf4j
 @Service
@@ -26,37 +34,38 @@ import java.util.stream.Collectors;
 public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
+    private final BookingRepository bookingRepository;
+    private final CommentRepository commentRepository;
 
     @Override
-    public List<ItemDto> getAllItemsByOwner(long ownerId) {
-        return itemRepository.getAllItems().stream()
-                .filter(item -> item.getOwner().getId() == ownerId)
-                .map(ItemMapper::toItemDto)
+    public List<ItemOutputDto> getAllItemsByOwner(Long ownerId) {
+        return itemRepository.findAll().stream()
+                .filter(item -> Objects.equals(item.getOwner().getId(), ownerId))
+                .map(item -> convertToItemOutputDto(item, ownerId))
                 .collect(Collectors.toList());
     }
 
     @Override
-    public ItemDto getItemById(long itemId) {
-        Item item = itemRepository.getItemById(itemId)
-                .orElseThrow(() -> new ObjectNotFoundException("Предмет не найден."));
-        return ItemMapper.toItemDto(item);
+    public ItemOutputDto getItemById(Long itemId, Long userId) {
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new ObjectNotFoundException("Предмет c id=" + itemId + " не найден."));
+        return convertToItemOutputDto(item, userId);
     }
 
     @Override
-    public ItemDto createItem(ItemDto itemDto, long ownerId) {
+    public ItemOutputDto createItem(ItemInputDto itemDto, Long ownerId) {
         validate(itemDto);
-        User owner = userRepository.getUserById(ownerId)
-                .orElseThrow(() -> new ObjectNotFoundException("Пользователь не найден."));
+        User owner = userRepository.findById(ownerId)
+                .orElseThrow(() -> new ObjectNotFoundException("Пользователь c id=" + ownerId + " не найден."));
         Item item = ItemMapper.fromItemDto(itemDto, owner);
-        return ItemMapper.toItemDto(itemRepository.createItem(item));
+        return convertToItemOutputDto(itemRepository.save(item), ownerId);
     }
 
     @Override
-    public ItemDto updateItem(long itemId, ItemDto itemDto, long userId) {
-        Item itemUpd = itemRepository.getItemById(itemId)
-                .orElseThrow(() -> new ObjectNotFoundException("Предмет не найден."));
-        if (userId != itemUpd.getOwner().getId()) {
-            log.warn("Редактировать вещь может только её владелец. Владелец вещи - id={}", itemUpd.getOwner().getId());
+    public ItemOutputDto updateItem(Long itemId, ItemInputDto itemDto, Long userId) {
+        Item itemUpd = itemRepository.findById(itemId)
+                .orElseThrow(() -> new ObjectNotFoundException("Предмет c id=" + itemId + " не найден."));
+        if (!Objects.equals(userId, itemUpd.getOwner().getId())) {
             throw new ForbiddenAccessException("Редактировать вещь может только её владелец.");
         }
         if (itemDto.getName() != null) {
@@ -68,27 +77,48 @@ public class ItemServiceImpl implements ItemService {
         if (itemDto.getAvailable() != null) {
             itemUpd.setAvailable(itemDto.getAvailable());
         }
-        return ItemMapper.toItemDto(itemRepository.updateItem(itemUpd));
+        return convertToItemOutputDto(itemRepository.save(itemUpd), userId);
     }
 
     @Override
-    public void deleteItem(long itemId) {
-        itemRepository.deleteItem(itemId);
+    public void deleteItem(Long itemId) {
+        itemRepository.deleteById(itemId);
     }
 
     @Override
-    public List<ItemDto> searchItems(String query) {
+    public List<ItemOutputDto> searchItems(String query) {
         if (query.isEmpty() || query.isBlank()) {
             return Collections.emptyList();
         } else {
-            return itemRepository.getAllItems().stream()
-                    .filter(item -> searchInNameAndDesc(item, query))
-                    .map(ItemMapper::toItemDto)
+            return itemRepository.search(query).stream()
+                    .filter(Item::getAvailable)
+                    .map(item -> convertToItemOutputDto(item, item.getOwner().getId()))
                     .collect(Collectors.toList());
         }
     }
 
-    private void validate(ItemDto itemDto) {
+    @Override
+    public CommentDto createComment(Long userId, Long itemId, CommentDto commentDto) {
+        Booking booking = bookingRepository.getAllByBookerId(userId).stream()
+                .filter(b -> b.getItem().getId().equals(itemId))
+                .filter(b -> b.getEnd().isBefore(LocalDateTime.now()))
+                .findFirst()
+                .orElseThrow(() -> new BadRequestException("Пользователь c id=" + userId +
+                        " не имеет бронирований, к которым можно добавить комментарий."));
+        if (booking.getStatus().equals(StatusType.APPROVED)) {
+            User author = userRepository.findById(userId)
+                    .orElseThrow(() -> new ObjectNotFoundException("Пользователь c id=" + userId + " не найден."));
+            Item item = itemRepository.findById(itemId)
+                    .orElseThrow(() -> new ObjectNotFoundException("Предмет c id=" + itemId + " не найден."));
+            Comment comment = CommentMapper.fromCommentDto(commentDto, author, item);
+            return CommentMapper.toCommentDto(commentRepository.save(comment));
+        } else {
+            throw new BadRequestException("Статус бронирования - " + booking.getStatus().toString() +
+                    ". Добавление комментария не разрешено.");
+        }
+    }
+
+    private void validate(ItemInputDto itemDto) {
         if (itemDto.getName() == null || itemDto.getName().isEmpty()) {
             throw new BadRequestException("Отсутствует краткое название.");
         }
@@ -100,9 +130,12 @@ public class ItemServiceImpl implements ItemService {
         }
     }
 
-    private boolean searchInNameAndDesc(Item item, String query) {
-        return (item.getDescription().toLowerCase(Locale.ROOT).contains(query.toLowerCase()) ||
-                item.getName().toLowerCase(Locale.ROOT).contains(query.toLowerCase())) &&
-                item.getAvailable().equals(true);
+    private ItemOutputDto convertToItemOutputDto(Item item, Long ownerId) {
+        Booking lastBooking = bookingRepository.findLastBooking(item.getId(), ownerId).orElse(null);
+        Booking nextBooking = bookingRepository.findNextBooking(item.getId(), ownerId).orElse(null);
+        List<CommentDto> comments = commentRepository.findAllByItemId(item.getId()).stream()
+                .map(CommentMapper::toCommentDto)
+                .collect(Collectors.toList());
+        return ItemMapper.toItemOutputDto(item, lastBooking, nextBooking, comments);
     }
 }
