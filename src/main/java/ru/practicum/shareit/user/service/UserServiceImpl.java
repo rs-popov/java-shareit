@@ -29,7 +29,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto getUserById(long id) {
+    public UserDto getUserById(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ObjectNotFoundException("Пользователь c id=" + id + "не найден."));
         return UserMapper.toUserDto(user);
@@ -45,7 +45,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto updateUser(long id, UserDto userDto) {
+    public UserDto updateUser(Long id, UserDto userDto) {
         User userUpd = userRepository.findById(id)
                 .orElseThrow(() -> new ObjectNotFoundException("Пользователь c id=" + id + "не найден."));
         if (userDto.getName() != null) {
@@ -58,7 +58,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void deleteUser(long id) {
+    public void deleteUser(Long id) {
         userRepository.deleteById(id);
     }
 

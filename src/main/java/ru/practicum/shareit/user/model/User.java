@@ -5,13 +5,6 @@ import lombok.*;
 import javax.persistence.*;
 import javax.validation.constraints.Email;
 
-/**
- * id — уникальный идентификатор пользователя;
- * name — имя или логин пользователя;
- * email — адрес электронной почты (учтите, что два пользователя не могут
- * иметь одинаковый адрес электронной почты).
- */
-
 @Data
 @Builder
 @RequiredArgsConstructor
@@ -21,12 +14,13 @@ import javax.validation.constraints.Email;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "id", nullable = false)
+    Long id;
 
     @Column(name = "name", nullable = false)
-    private String name;
+    String name;
 
     @Email
     @Column(name = "email", nullable = false, unique = true)
-    private String email;
+    String email;
 }

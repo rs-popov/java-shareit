@@ -23,6 +23,4 @@ public class InputBookingDto {
     @NonNull
     @Future
     LocalDateTime end;
-
-    StatusType statusType;
 }
