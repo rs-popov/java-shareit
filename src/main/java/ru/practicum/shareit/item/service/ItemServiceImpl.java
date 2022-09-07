@@ -138,8 +138,12 @@ public class ItemServiceImpl implements ItemService {
                 .map(CommentMapper::toCommentDto)
                 .collect(Collectors.toList());
         ItemOutputDto itemOutputDto = ItemMapper.toItemOutputDto(item);
-        itemOutputDto.setLastBooking(BookingMapper.toBookingDtoForItem(lastBooking));
-        itemOutputDto.setNextBooking(BookingMapper.toBookingDtoForItem(nextBooking));
+        if (lastBooking != null) {
+            itemOutputDto.setLastBooking(BookingMapper.toBookingDtoForItem(lastBooking));
+        }
+        if (nextBooking != null) {
+            itemOutputDto.setNextBooking(BookingMapper.toBookingDtoForItem(nextBooking));
+        }
         itemOutputDto.setComments(comments);
         return itemOutputDto;
     }

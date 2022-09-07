@@ -29,9 +29,6 @@ public class ItemMapper {
                 .name(item.getName())
                 .description(item.getDescription())
                 .available(item.getAvailable())
-                .lastBooking(null)
-                .nextBooking(null)
-                .comments(null)
                 .build();
     }
 }

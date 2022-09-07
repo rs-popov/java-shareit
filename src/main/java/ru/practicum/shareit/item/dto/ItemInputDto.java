@@ -2,7 +2,7 @@ package ru.practicum.shareit.item.dto;
 
 import lombok.*;
 
-@Value
+@Data
 @Builder
 public class ItemInputDto {
     Long id;
