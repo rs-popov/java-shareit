@@ -4,9 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 import ru.practicum.shareit.booking.model.StatusType;
 import ru.practicum.shareit.item.dto.ItemInputDto;
-import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.model.User;
 
 import javax.validation.constraints.Future;
 import java.time.LocalDateTime;
