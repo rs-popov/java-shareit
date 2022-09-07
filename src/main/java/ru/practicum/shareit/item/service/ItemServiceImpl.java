@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import ru.practicum.shareit.booking.dto.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.StatusType;
 import ru.practicum.shareit.booking.repository.BookingRepository;
@@ -138,9 +137,9 @@ public class ItemServiceImpl implements ItemService {
                 .map(CommentMapper::toCommentDto)
                 .collect(Collectors.toList());
         ItemOutputDto itemOutputDto = ItemMapper.toItemOutputDto(item);
-        itemOutputDto.setLastBooking(BookingMapper.toBookingDtoForItem(lastBooking));
-        itemOutputDto.setNextBooking(BookingMapper.toBookingDtoForItem(nextBooking));
-        itemOutputDto.setComments(comments);
+        //itemOutputDto.setLastBooking(BookingMapper.toBookingDtoForItem(lastBooking));
+        //itemOutputDto.setNextBooking(BookingMapper.toBookingDtoForItem(nextBooking));
+        //itemOutputDto.setComments(comments);
         return itemOutputDto;
     }
 }
