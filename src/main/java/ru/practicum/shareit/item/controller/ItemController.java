@@ -35,7 +35,7 @@ public class ItemController {
     }
 
     @PostMapping
-    public ItemOutputDto createItem(@RequestHeader(USERID) Long ownerId,
+    public ItemInputDto createItem(@RequestHeader(USERID) Long ownerId,
                                     @Valid @NotNull @RequestBody ItemInputDto itemDto) {
         return itemService.createItem(itemDto, ownerId);
     }
