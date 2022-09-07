@@ -38,18 +38,18 @@ public class ItemServiceImpl implements ItemService {
     private final CommentRepository commentRepository;
 
     @Override
-    public List<ItemOutputDto> getAllItemsByOwner(Long ownerId) {
+    public List<ItemInputDto> getAllItemsByOwner(Long ownerId) {
         return itemRepository.findAll().stream()
                 .filter(item -> Objects.equals(item.getOwner().getId(), ownerId))
-                .map(item -> convertToItemOutputDto(item, ownerId))
+                .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public ItemOutputDto getItemById(Long itemId, Long userId) {
+    public ItemInputDto getItemById(Long itemId, Long userId) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new ObjectNotFoundException("Предмет c id=" + itemId + " не найден."));
-        return convertToItemOutputDto(item, userId);
+        return ItemMapper.toItemDto(item);
     }
 
     @Override
@@ -86,13 +86,13 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemOutputDto> searchItems(String query) {
+    public List<ItemInputDto> searchItems(String query) {
         if (query.isEmpty() || query.isBlank()) {
             return Collections.emptyList();
         } else {
             return itemRepository.search(query).stream()
                     .filter(Item::getAvailable)
-                    .map(item -> convertToItemOutputDto(item, item.getOwner().getId()))
+                    .map(ItemMapper::toItemDto)
                     .collect(Collectors.toList());
         }
     }
