@@ -14,7 +14,6 @@ import ru.practicum.shareit.item.comment.repository.CommentRepository;
 import ru.practicum.shareit.exceptions.BadRequestException;
 import ru.practicum.shareit.exceptions.ForbiddenAccessException;
 import ru.practicum.shareit.exceptions.ObjectNotFoundException;
-import ru.practicum.shareit.item.dto.ItemDTO;
 import ru.practicum.shareit.item.dto.ItemInputDto;
 import ru.practicum.shareit.item.dto.ItemMapper;
 import ru.practicum.shareit.item.dto.ItemOutputDto;
