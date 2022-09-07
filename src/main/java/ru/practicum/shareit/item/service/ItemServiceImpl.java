@@ -131,11 +131,11 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private ItemOutputDto convertToItemOutputDto(Item item, Long ownerId) {
-        Booking lastBooking = bookingRepository.findLastBooking(item.getId(), ownerId).orElse(null);
-        Booking nextBooking = bookingRepository.findNextBooking(item.getId(), ownerId).orElse(null);
-        List<CommentDto> comments = commentRepository.findAllByItemId(item.getId()).stream()
-                .map(CommentMapper::toCommentDto)
-                .collect(Collectors.toList());
+        //Booking lastBooking = bookingRepository.findLastBooking(item.getId(), ownerId).orElse(null);
+        //Booking nextBooking = bookingRepository.findNextBooking(item.getId(), ownerId).orElse(null);
+//        List<CommentDto> comments = commentRepository.findAllByItemId(item.getId()).stream()
+//                .map(CommentMapper::toCommentDto)
+//                .collect(Collectors.toList());
         ItemOutputDto itemOutputDto = ItemMapper.toItemOutputDto(item);
         //itemOutputDto.setLastBooking(BookingMapper.toBookingDtoForItem(lastBooking));
         //itemOutputDto.setNextBooking(BookingMapper.toBookingDtoForItem(nextBooking));
