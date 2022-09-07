@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import ru.practicum.shareit.booking.dto.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.StatusType;
 import ru.practicum.shareit.booking.repository.BookingRepository;
@@ -38,18 +39,18 @@ public class ItemServiceImpl implements ItemService {
     private final CommentRepository commentRepository;
 
     @Override
-    public List<ItemInputDto> getAllItemsByOwner(Long ownerId) {
+    public List<ItemOutputDto> getAllItemsByOwner(Long ownerId) {
         return itemRepository.findAll().stream()
                 .filter(item -> Objects.equals(item.getOwner().getId(), ownerId))
-                .map(ItemMapper::toItemDto)
+                .map(item -> convertToItemOutputDto(item, ownerId))
                 .collect(Collectors.toList());
     }
 
     @Override
-    public ItemInputDto getItemById(Long itemId, Long userId) {
+    public ItemOutputDto getItemById(Long itemId, Long userId) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new ObjectNotFoundException("Предмет c id=" + itemId + " не найден."));
-        return ItemMapper.toItemDto(item);
+        return convertToItemOutputDto(item, userId);
     }
 
     @Override
@@ -136,6 +137,10 @@ public class ItemServiceImpl implements ItemService {
         List<CommentDto> comments = commentRepository.findAllByItemId(item.getId()).stream()
                 .map(CommentMapper::toCommentDto)
                 .collect(Collectors.toList());
-        return ItemMapper.toItemOutputDto(item, lastBooking, nextBooking, comments);
+        ItemOutputDto itemOutputDto = ItemMapper.toItemOutputDto(item);
+        itemOutputDto.setLastBooking(BookingMapper.toBookingDtoForItem(lastBooking));
+        itemOutputDto.setNextBooking(BookingMapper.toBookingDtoForItem(nextBooking));
+        itemOutputDto.setComments(comments);
+        return itemOutputDto;
     }
 }

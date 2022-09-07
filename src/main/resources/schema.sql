@@ -26,9 +26,12 @@ CREATE TABLE IF NOT EXISTS items
     description  VARCHAR(1000),
     is_available BOOLEAN,
     owner_id     BIGINT,
+    request_id   BIGINT,
     CONSTRAINT pk_items PRIMARY KEY (id),
     CONSTRAINT fk_items_users
-        FOREIGN KEY (owner_id) REFERENCES users (id) ON DELETE CASCADE
+        FOREIGN KEY (owner_id) REFERENCES users (id) ON DELETE CASCADE,
+    CONSTRAINT fk_items_request
+        FOREIGN KEY (request_id) REFERENCES requests (id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS bookings
