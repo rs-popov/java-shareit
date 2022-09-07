@@ -32,8 +32,6 @@ public class BookingMapper {
         if (booking != null) {
             return BookingDtoForItem.builder()
                     .id(booking.getId())
-                    .start(booking.getStart())
-                    .end(booking.getEnd())
                     .bookerId(booking.getBooker().getId())
                     .build();
         } else return null;
