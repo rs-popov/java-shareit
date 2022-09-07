@@ -1,20 +1,20 @@
 package ru.practicum.shareit.item.comment.dto;
 
 import lombok.Builder;
-import lombok.Value;
+import lombok.Data;
 
 import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
 
-@Value
+@Data
 @Builder
 public class CommentDto {
-    Long id;
+    private Long id;
 
     @Size(min = 1)
-    String text;
+    private String text;
 
-    String authorName;
+    private String authorName;
 
-    LocalDateTime created;
+    private LocalDateTime created;
 }

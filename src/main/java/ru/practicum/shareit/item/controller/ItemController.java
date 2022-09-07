@@ -36,14 +36,14 @@ public class ItemController {
 
     @PostMapping
     public ItemInputDto createItem(@RequestHeader(USERID) Long ownerId,
-                                    @Valid @NotNull @RequestBody ItemInputDto itemDto) {
+                                   @Valid @NotNull @RequestBody ItemInputDto itemDto) {
         return itemService.createItem(itemDto, ownerId);
     }
 
     @PatchMapping("/{itemId}")
     public ItemInputDto updateItem(@RequestHeader(USERID) Long userId,
-                                    @PathVariable Long itemId,
-                                    @Valid @NotNull @RequestBody ItemInputDto itemDto) {
+                                   @PathVariable Long itemId,
+                                   @Valid @NotNull @RequestBody ItemInputDto itemDto) {
         return itemService.updateItem(itemId, itemDto, userId);
     }
 

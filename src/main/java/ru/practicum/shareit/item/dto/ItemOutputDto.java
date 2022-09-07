@@ -10,11 +10,11 @@ import java.util.List;
 @Data
 @Builder
 public class ItemOutputDto {
-    Long id;
-    String name;
-    String description;
-    Boolean available;
-    BookingDtoForItem lastBooking;
-    BookingDtoForItem nextBooking;
-    List<CommentDto> comments;
+    private Long id;
+    private String name;
+    private String description;
+    private Boolean available;
+    private BookingDtoForItem lastBooking;
+    private BookingDtoForItem nextBooking;
+    private List<CommentDto> comments;
 }
