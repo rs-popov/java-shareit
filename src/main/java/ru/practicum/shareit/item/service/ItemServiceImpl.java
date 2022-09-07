@@ -62,7 +62,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public ItemOutputDto updateItem(Long itemId, ItemInputDto itemDto, Long userId) {
+    public ItemInputDto updateItem(Long itemId, ItemInputDto itemDto, Long userId) {
         Item itemUpd = itemRepository.findById(itemId)
                 .orElseThrow(() -> new ObjectNotFoundException("Предмет c id=" + itemId + " не найден."));
         if (!Objects.equals(userId, itemUpd.getOwner().getId())) {
@@ -77,7 +77,7 @@ public class ItemServiceImpl implements ItemService {
         if (itemDto.getAvailable() != null) {
             itemUpd.setAvailable(itemDto.getAvailable());
         }
-        return convertToItemOutputDto(itemRepository.save(itemUpd), userId);
+        return ItemMapper.toItemDto(itemRepository.save(itemUpd));
     }
 
     @Override

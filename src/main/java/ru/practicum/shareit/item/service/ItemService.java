@@ -15,7 +15,7 @@ public interface ItemService {
 
     ItemInputDto createItem(ItemInputDto itemDto, Long ownerId);
 
-    ItemOutputDto updateItem(Long itemId, ItemInputDto itemDto, Long userId);
+    ItemInputDto updateItem(Long itemId, ItemInputDto itemDto, Long userId);
 
     void deleteItem(Long itemId);
 
