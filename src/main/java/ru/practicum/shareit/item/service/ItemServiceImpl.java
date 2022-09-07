@@ -14,6 +14,7 @@ import ru.practicum.shareit.item.comment.repository.CommentRepository;
 import ru.practicum.shareit.exceptions.BadRequestException;
 import ru.practicum.shareit.exceptions.ForbiddenAccessException;
 import ru.practicum.shareit.exceptions.ObjectNotFoundException;
+import ru.practicum.shareit.item.dto.ItemDTO;
 import ru.practicum.shareit.item.dto.ItemInputDto;
 import ru.practicum.shareit.item.dto.ItemMapper;
 import ru.practicum.shareit.item.dto.ItemOutputDto;
@@ -53,12 +54,12 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public ItemOutputDto createItem(ItemInputDto itemDto, Long ownerId) {
+    public ItemInputDto createItem(ItemInputDto itemDto, Long ownerId) {
         validate(itemDto);
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new ObjectNotFoundException("Пользователь c id=" + ownerId + " не найден."));
         Item item = ItemMapper.fromItemDto(itemDto, owner);
-        return convertToItemOutputDto(itemRepository.save(item), ownerId);
+        return ItemMapper.toItemDto(itemRepository.save(item));
     }
 
     @Override

@@ -5,7 +5,7 @@ import lombok.*;
 @Value
 @Builder
 public class ItemInputDto {
-    long id;
+    Long id;
     String name;
     String description;
     Boolean available;
