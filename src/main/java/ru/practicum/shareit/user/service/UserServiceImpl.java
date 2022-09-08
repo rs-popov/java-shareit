@@ -38,9 +38,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto createUser(UserDto userDto) {
         if (userDto.getEmail() == null || userDto.getEmail().isEmpty()) {
+            log.warn("При создании профиля не была указана почта пользователя.");
             throw new BadRequestException("Не указана почта пользователя.");
         }
         User user = userRepository.save(UserMapper.fromUserDto(userDto));
+        log.info("Создан профиль пользователя {}, id={}", user.getName(), user.getId());
         return UserMapper.toUserDto(user);
     }
 
@@ -54,12 +56,15 @@ public class UserServiceImpl implements UserService {
         if (userDto.getEmail() != null && validateEmail(userDto.getEmail())) {
             userUpd.setEmail(userDto.getEmail());
         }
-        return UserMapper.toUserDto(userRepository.save(userUpd));
+        UserDto userDtoUpd = UserMapper.toUserDto(userRepository.save(userUpd));
+        log.info("Изменен профиль пользователя {}, id={}", userDtoUpd.getName(), userDtoUpd.getId());
+        return userDtoUpd;
     }
 
     @Override
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
+        log.info("Удален  профиль пользователя , id={}", id);
     }
 
     private boolean validateEmail(String email) {

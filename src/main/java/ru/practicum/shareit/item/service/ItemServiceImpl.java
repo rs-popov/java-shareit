@@ -59,7 +59,9 @@ public class ItemServiceImpl implements ItemService {
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new ObjectNotFoundException("Пользователь c id=" + ownerId + " не найден."));
         Item item = ItemMapper.fromItemDto(itemDto, owner);
-        return ItemMapper.toItemDto(itemRepository.save(item));
+        ItemInputDto itemInputDto = ItemMapper.toItemDto(itemRepository.save(item));
+        log.info("Создан предмет с id={}", itemInputDto.getId());
+        return itemInputDto;
     }
 
     @Override
@@ -67,6 +69,7 @@ public class ItemServiceImpl implements ItemService {
         Item itemUpd = itemRepository.findById(itemId)
                 .orElseThrow(() -> new ObjectNotFoundException("Предмет c id=" + itemId + " не найден."));
         if (!Objects.equals(userId, itemUpd.getOwner().getId())) {
+            log.warn("Редактировать вещь может только её владелец.");
             throw new ForbiddenAccessException("Редактировать вещь может только её владелец.");
         }
         if (itemDto.getName() != null) {
@@ -78,12 +81,15 @@ public class ItemServiceImpl implements ItemService {
         if (itemDto.getAvailable() != null) {
             itemUpd.setAvailable(itemDto.getAvailable());
         }
-        return ItemMapper.toItemDto(itemRepository.save(itemUpd));
+        ItemInputDto itemUpdInputDto = ItemMapper.toItemDto(itemRepository.save(itemUpd));
+        log.info("Изменен предмет с id={}", itemUpdInputDto.getId());
+        return itemUpdInputDto;
     }
 
     @Override
     public void deleteItem(Long itemId) {
         itemRepository.deleteById(itemId);
+        log.info("Удален предмен с id={}", itemId);
     }
 
     @Override

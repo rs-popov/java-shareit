@@ -38,12 +38,16 @@ public class BookingServiceImpl implements BookingService {
         Item item = itemRepository.findById(inputBookingDto.getItemId())
                 .orElseThrow(() -> new ObjectNotFoundException("Предмет c id=" + inputBookingDto.getItemId() + " не найден."));
         if (booker.getId().equals(item.getOwner().getId())) {
+            log.warn("Пользователь c id={} является владельцем предмета.", bookerId);
             throw new ObjectNotFoundException("Пользователь c id=" + bookerId + " является владельцем предмета.");
         }
         Booking booking = BookingMapper.fromInputBookingDto(inputBookingDto, item, booker);
         if (booking.getItem().getAvailable() && booking.getStart().isBefore(booking.getEnd())) {
-            return BookingMapper.toBookingDto(bookingRepository.save(booking));
+            BookingDto bookingDto = BookingMapper.toBookingDto(bookingRepository.save(booking));
+            log.info("Добавлено бронирование с id={}", bookingDto.getId());
+            return bookingDto;
         } else {
+            log.warn("Предмет не доступен для бронирования или указаны неверные параметры бронирования.");
             throw new BadRequestException("Неверные параметры бронирования.");
         }
     }
@@ -58,9 +62,12 @@ public class BookingServiceImpl implements BookingService {
         if (booking.getStatus().equals(StatusType.WAITING)) {
             booking.setStatus(isApprove ? StatusType.APPROVED : StatusType.REJECTED);
         } else {
+            log.warn("Статус бронирования id={} отличается от WAITING", booking.getId());
             throw new BadRequestException("Бронирование не нуждается в изменении статуса.");
         }
-        return BookingMapper.toBookingDto(bookingRepository.save(booking));
+        BookingDto bookingDto = BookingMapper.toBookingDto(bookingRepository.save(booking));
+        log.info("Изменено бронирование с id={}", bookingDto.getId());
+        return bookingDto;
     }
 
     @Override
@@ -70,6 +77,7 @@ public class BookingServiceImpl implements BookingService {
         if (booking.getBooker().getId().equals(userId) || booking.getItem().getOwner().getId().equals(userId)) {
             return BookingMapper.toBookingDto(booking);
         } else {
+            log.warn("Пользователь c id=" + userId + " не имеет отношение к предмету.");
             throw new ObjectNotFoundException("Пользователь c id=" + userId + " не имеет отношение к предмету.");
         }
     }
@@ -78,6 +86,7 @@ public class BookingServiceImpl implements BookingService {
     public List<BookingDto> getAllByBookerId(Long bookerId, String stateString) {
         List<Booking> result = bookingRepository.findAllByBookerId(bookerId);
         if (result.isEmpty()) {
+            log.info("Пользователь id={} не имеет бронирований", bookerId);
             throw new ObjectNotFoundException("Бронирований не найдено.");
         } else {
             return filterByState(result, toState(stateString)).stream()
@@ -90,6 +99,7 @@ public class BookingServiceImpl implements BookingService {
     public List<BookingDto> getAllByOwnerId(Long ownerId, String stateString) {
         List<Booking> result = bookingRepository.getAllByOwnerId(ownerId);
         if (result.isEmpty()) {
+            log.info("Пользователь id={} не имеет бронирований", ownerId);
             throw new ObjectNotFoundException("Бронирований не найдено.");
         } else {
             return filterByState(result, toState(stateString)).stream()
