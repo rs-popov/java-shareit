@@ -7,7 +7,7 @@ import javax.validation.constraints.Email;
 
 @Data
 @Builder
-@RequiredArgsConstructor
+@NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "users")
