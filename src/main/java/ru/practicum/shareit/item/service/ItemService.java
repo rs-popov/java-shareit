@@ -7,11 +7,11 @@ import ru.practicum.shareit.item.dto.ItemOutputDto;
 import java.util.List;
 
 public interface ItemService {
-    List<ItemOutputDto> getAllItemsByOwner(Long ownerId);
+    List<ItemOutputDto> getAllItemsByOwner(Long ownerId, Integer from, Integer size);
 
     ItemOutputDto getItemById(Long itemId, Long userId);
 
-    List<ItemInputDto> searchItems(String query);
+    List<ItemInputDto> searchItems(String query, Integer from, Integer size);
 
     ItemInputDto createItem(ItemInputDto itemDto, Long ownerId);
 
