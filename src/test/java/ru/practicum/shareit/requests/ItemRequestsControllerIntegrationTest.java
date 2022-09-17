@@ -28,7 +28,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
         properties = "db.name=test",
         webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-public class RequestsIntegrationTests {
+public class ItemRequestsControllerIntegrationTest {
     private final EntityManager entityManager;
     private final UserService userService;
     private final ItemRequestService itemRequestService;
@@ -57,10 +57,12 @@ public class RequestsIntegrationTests {
     void createRequest() {
         UserDto requesterCreated = userService.createUser(UserMapper.toUserDto(requester));
         ItemRequestDto createdItemRequest = itemRequestService.createRequest(requesterCreated.getId(), itemRequest);
+
         TypedQuery<ItemRequest> query = entityManager.createQuery(
                 "select ir from ItemRequest ir where ir.id = : id", ItemRequest.class);
         ItemRequest itemRequest1 = query.setParameter("id", createdItemRequest.getId())
                 .getSingleResult();
+
         assertThat(itemRequest1.getId(), notNullValue());
         assertThat(itemRequest1.getDescription(), equalTo(itemRequest.getDescription()));
     }
@@ -70,6 +72,7 @@ public class RequestsIntegrationTests {
         UserDto requesterCreated = userService.createUser(UserMapper.toUserDto(requester));
         ItemRequestDto createdItemRequest = itemRequestService.createRequest(requesterCreated.getId(), itemRequest);
         ItemRequestOutputDto createdItemRequestFromGet = itemRequestService.findRequestById(createdItemRequest.getId(), requesterCreated.getId());
+
         assertThat(createdItemRequestFromGet.getId(), notNullValue());
         assertThat(createdItemRequestFromGet.getDescription(), equalTo(itemRequest.getDescription()));
     }
@@ -80,6 +83,7 @@ public class RequestsIntegrationTests {
         itemRequestService.createRequest(requesterCreated.getId(), itemRequest);
         itemRequestService.createRequest(requesterCreated.getId(), anotherItemRequest);
         List<ItemRequestOutputDto> requests = itemRequestService.findAllRequestFromRequester(requesterCreated.getId());
+
         assertThat(requests, notNullValue());
         assertThat(requests.size(), equalTo(2));
     }
@@ -91,6 +95,7 @@ public class RequestsIntegrationTests {
         itemRequestService.createRequest(requesterCreated.getId(), itemRequest);
         itemRequestService.createRequest(userCreated.getId(), anotherItemRequest);
         List<ItemRequestOutputDto> requests = itemRequestService.findAllRequestFromRequester(requesterCreated.getId());
+
         assertThat(requests, notNullValue());
         assertThat(requests.get(0).getDescription(), equalTo("itemRequestDescription"));
     }

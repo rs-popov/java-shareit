@@ -38,7 +38,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class ItemUnitTests {
+public class ItemServiceImplTests {
     @InjectMocks
     private ItemServiceImpl itemService;
     @Mock
@@ -50,6 +50,7 @@ public class ItemUnitTests {
     @Mock
     private CommentRepository commentRepository;
 
+    private final LocalDateTime date = LocalDateTime.now();
     private final User owner = User.builder()
             .id(1L)
             .name("UserName")
@@ -74,13 +75,15 @@ public class ItemUnitTests {
         ItemInputDto inputDto = ItemMapper.toItemDto(item);
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(owner));
         when(itemRepository.save(any())).thenReturn(item);
+
         ItemInputDto createdItem = itemService.createItem(inputDto, anyLong());
         assertEquals(createdItem, inputDto);
+
         verify(itemRepository, times(1)).save(any());
     }
 
     @Test
-    void createItemWithOwnerUnknown_shouldThrowException() {
+    void createItemWithOwnerUnknownShouldThrowException() {
         ItemInputDto inputDto = ItemMapper.toItemDto(item);
         ObjectNotFoundException exception = assertThrows(ObjectNotFoundException.class,
                 () -> itemService.createItem(inputDto, 11L));
@@ -88,7 +91,7 @@ public class ItemUnitTests {
     }
 
     @Test
-    void createItemWithoutAvailable_shouldThrowException() {
+    void createItemWithoutAvailableShouldThrowException() {
         ItemInputDto inputDto = ItemInputDto.builder()
                 .id(1L)
                 .name("ItemName")
@@ -100,7 +103,7 @@ public class ItemUnitTests {
     }
 
     @Test
-    void createItemWithoutName_shouldThrowException() {
+    void createItemWithoutNameShouldThrowException() {
         ItemInputDto inputDto = ItemInputDto.builder()
                 .id(1L)
                 .description("ItemDesc")
@@ -112,7 +115,7 @@ public class ItemUnitTests {
     }
 
     @Test
-    void createItemWithoutDescription_shouldThrowException() {
+    void createItemWithoutDescriptionShouldThrowException() {
         ItemInputDto inputDto = ItemInputDto.builder()
                 .id(1L)
                 .name("name")
@@ -138,6 +141,7 @@ public class ItemUnitTests {
                 .name("ItemNameUpdate").build(), 1L);
         assertEquals(itemUpdated.getName(), "ItemNameUpdate");
         assertEquals(itemUpdated.getDescription(), "ItemDesc");
+
         verify(itemRepository, times(1)).save(any());
     }
 
@@ -151,10 +155,12 @@ public class ItemUnitTests {
                 .owner(owner)
                 .available(true)
                 .build());
+
         ItemInputDto itemUpdated = itemService.updateItem(1L, ItemInputDto.builder()
                 .description("ItemDescUpdate").build(), 1L);
         assertEquals(itemUpdated.getName(), "ItemName");
         assertEquals(itemUpdated.getDescription(), "ItemDescUpdate");
+
         verify(itemRepository, times(1)).save(any());
     }
 
@@ -168,15 +174,17 @@ public class ItemUnitTests {
                 .owner(owner)
                 .available(false)
                 .build());
+
         ItemInputDto itemUpdated = itemService.updateItem(1L, ItemInputDto.builder()
                 .available(false).build(), 1L);
         assertEquals(itemUpdated.getName(), "ItemName");
         assertEquals(itemUpdated.getDescription(), "ItemDesc");
+
         verify(itemRepository, times(1)).save(any());
     }
 
     @Test
-    void updateItemWithByNonOwner_shouldThrowException() {
+    void updateItemWithByNonOwnerShouldThrowException() {
         when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
         ForbiddenAccessException exception = assertThrows(ForbiddenAccessException.class,
                 () -> itemService.updateItem(1L, ItemInputDto.builder()
@@ -194,6 +202,7 @@ public class ItemUnitTests {
     void searchItems() {
         when(itemRepository.search(anyString(), any()))
                 .thenReturn(new PageImpl<Item>(List.of(item, anotherItem)));
+
         List<ItemInputDto> searchResult = itemService.searchItems("Item", 0, 2);
         assertEquals(2, searchResult.size());
     }
@@ -223,6 +232,7 @@ public class ItemUnitTests {
         when(bookingRepository.findLastBooking(anyLong(), anyLong())).thenReturn(Optional.ofNullable(Booking.builder().booker(owner).build()));
         when(bookingRepository.findNextBooking(anyLong(), anyLong())).thenReturn(Optional.ofNullable(Booking.builder().booker(owner).build()));
         when(commentRepository.findAllByItemId(anyLong())).thenReturn(Collections.emptyList());
+
         ItemOutputDto itemOutputDto = itemService.getItemById(1L, 1L);
         assertEquals(itemOutputDto.getName(), item.getName());
         assertEquals(itemOutputDto.getDescription(), item.getDescription());
@@ -230,7 +240,7 @@ public class ItemUnitTests {
     }
 
     @Test
-    void getItemByIdWithUnknownId_shouldThrowException() {
+    void getItemByIdWithUnknownIdShouldThrowException() {
         when(itemRepository.findById(anyLong())).thenThrow(ObjectNotFoundException.class);
         assertThrows(ObjectNotFoundException.class,
                 () -> itemService.getItemById(11L, anyLong()));
@@ -240,13 +250,13 @@ public class ItemUnitTests {
     void getAllItemsByOwner() {
         when(itemRepository.findAll(PageRequest.of(0, 2)))
                 .thenReturn(new PageImpl<Item>(List.of(item, anotherItem)));
+
         List<ItemOutputDto> allItems = itemService.getAllItemsByOwner(1L, 0, 2);
         assertEquals(2, allItems.size());
     }
 
     @Test
     void createComment() {
-        LocalDateTime dateTime = LocalDateTime.now();
         User booker = User.builder()
                 .id(2L)
                 .name("BookerName")
@@ -254,8 +264,8 @@ public class ItemUnitTests {
                 .build();
         Booking booking = Booking.builder()
                 .id(1L)
-                .start(dateTime.minusDays(1))
-                .end(dateTime.minusHours(1))
+                .start(date.minusDays(1))
+                .end(date.minusHours(1))
                 .item(item)
                 .booker(booker)
                 .status(StatusType.APPROVED)
@@ -265,16 +275,18 @@ public class ItemUnitTests {
                 .text("this is comment")
                 .item(item)
                 .author(booker)
-                .created(dateTime.plusDays(1))
+                .created(date.plusDays(1))
                 .build();
         when(itemRepository.findById(anyLong())).thenReturn(Optional.of(item));
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(booker));
         when(bookingRepository.findAllByBookerId(anyLong())).thenReturn(List.of(booking));
         when(commentRepository.save(any())).thenReturn(comment);
+
         CommentDto commentCreated = itemService.createComment(2L, 1L, CommentMapper.toCommentDto(comment));
         assertEquals(1L, commentCreated.getId());
         assertEquals(booker.getName(), commentCreated.getAuthorName());
         assertEquals("this is comment", commentCreated.getText());
+
         verify(commentRepository, times(1)).save(any());
     }
 
@@ -287,8 +299,8 @@ public class ItemUnitTests {
                 .build();
         Booking booking = Booking.builder()
                 .id(1L)
-                .start(LocalDateTime.now().minusDays(1))
-                .end(LocalDateTime.now().minusHours(1))
+                .start(date.minusDays(1))
+                .end(date.minusHours(1))
                 .item(item)
                 .booker(booker)
                 .status(StatusType.REJECTED)
@@ -299,6 +311,7 @@ public class ItemUnitTests {
                 .item(item)
                 .author(booker)
                 .build();
+
         when(bookingRepository.findAllByBookerId(anyLong())).thenReturn(List.of(booking));
         assertThrows(BadRequestException.class,
                 () -> itemService.createComment(2L, 1L, CommentMapper.toCommentDto(comment)));

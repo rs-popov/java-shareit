@@ -17,6 +17,7 @@ import ru.practicum.shareit.user.model.User;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.Matchers.is;
@@ -30,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = ItemRequestController.class)
-public class RequestsControllerTests {
+public class ItemRequestsControllerTests {
     @MockBean
     private ItemRequestService itemRequestService;
     @Autowired
@@ -53,6 +54,7 @@ public class RequestsControllerTests {
     void createRequest() throws Exception {
         ItemRequestDto itemRequestDto = ItemRequestMapper.toItemRequestDto(itemRequest);
         when(itemRequestService.createRequest(anyLong(), any())).thenReturn(itemRequestDto);
+
         mvc.perform(post("/requests")
                         .content(mapper.writeValueAsString(itemRequestDto))
                         .header("X-Sharer-User-Id", 1L)
@@ -68,6 +70,7 @@ public class RequestsControllerTests {
     void createRequestWithoutUserIdHeader() throws Exception {
         ItemRequestDto itemRequestDto = ItemRequestMapper.toItemRequestDto(itemRequest);
         when(itemRequestService.createRequest(anyLong(), any())).thenReturn(itemRequestDto);
+
         mvc.perform(post("/requests")
                         .content(mapper.writeValueAsString(itemRequestDto))
                         .characterEncoding(StandardCharsets.UTF_8)
@@ -77,7 +80,7 @@ public class RequestsControllerTests {
     }
 
     @Test
-    void createRequestWithNonValidInputRequest() throws Exception {
+    void createRequestWithInvalidInputRequest() throws Exception {
         mvc.perform(post("/requests")
                         .content(mapper.writeValueAsString(null))
                         .header("X-Sharer-User-Id", 1L)
@@ -91,7 +94,8 @@ public class RequestsControllerTests {
     void getRequestById() throws Exception {
         ItemRequestDto itemRequestDto = ItemRequestMapper.toItemRequestDto(itemRequest);
         when(itemRequestService.findRequestById(anyLong(), anyLong()))
-                .thenReturn(ItemRequestMapper.itemRequestOutputDto(itemRequest, List.of()));
+                .thenReturn(ItemRequestMapper.itemRequestOutputDto(itemRequest, Collections.emptyList()));
+
         mvc.perform(get("/requests/" + itemRequestDto.getId())
                         .header("X-Sharer-User-Id", 1L))
                 .andExpect(status().isOk())
@@ -101,6 +105,7 @@ public class RequestsControllerTests {
     @Test
     void getRequestByIdWithoutUserIdHeader() throws Exception {
         ItemRequestDto itemRequestDto = ItemRequestMapper.toItemRequestDto(itemRequest);
+
         mvc.perform(get("/requests/" + itemRequestDto.getId()))
                 .andExpect(status().isBadRequest());
     }
@@ -108,7 +113,8 @@ public class RequestsControllerTests {
     @Test
     void getAllRequestsFromRequester() throws Exception {
         when(itemRequestService.findAllRequestFromRequester(anyLong()))
-                .thenReturn(List.of(ItemRequestMapper.itemRequestOutputDto(itemRequest, List.of())));
+                .thenReturn(List.of(ItemRequestMapper.itemRequestOutputDto(itemRequest, Collections.emptyList())));
+
         mvc.perform(get("/requests")
                         .header("X-Sharer-User-Id", 1L))
                 .andExpect(status().isOk())
@@ -125,7 +131,8 @@ public class RequestsControllerTests {
     @Test
     void getAllRequests() throws Exception {
         when(itemRequestService.findAllRequest(anyLong(), anyInt(), anyInt()))
-                .thenReturn(List.of(ItemRequestMapper.itemRequestOutputDto(itemRequest, List.of())));
+                .thenReturn(List.of(ItemRequestMapper.itemRequestOutputDto(itemRequest,Collections.emptyList())));
+
         mvc.perform(get("/requests/all")
                         .header("X-Sharer-User-Id", 1L)
                         .param("from", "0")
@@ -138,7 +145,8 @@ public class RequestsControllerTests {
     @Test
     void getAllRequestsWithoutParam() throws Exception {
         when(itemRequestService.findAllRequest(anyLong(), anyInt(), anyInt()))
-                .thenReturn(List.of(ItemRequestMapper.itemRequestOutputDto(itemRequest, List.of())));
+                .thenReturn(List.of(ItemRequestMapper.itemRequestOutputDto(itemRequest, Collections.emptyList())));
+
         mvc.perform(get("/requests/all")
                         .header("X-Sharer-User-Id", 1L))
                 .andExpect(status().isOk())

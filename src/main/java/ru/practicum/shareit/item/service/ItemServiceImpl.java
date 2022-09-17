@@ -44,8 +44,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemOutputDto> getAllItemsByOwner(Long ownerId, Integer from, Integer size) {
-        int page = from < size ? 0 : from / size;
-        return itemRepository.findAll(PageRequest.of(page, size)).stream()
+        return itemRepository.findAll(getPageRequest(from, size)).stream()
                 .filter(item -> Objects.equals(item.getOwner().getId(), ownerId))
                 .map(item -> convertToItemOutputDto(item, ownerId))
                 .collect(Collectors.toList());
@@ -107,7 +106,7 @@ public class ItemServiceImpl implements ItemService {
         if (query.isEmpty() || query.isBlank()) {
             return Collections.emptyList();
         } else {
-            return itemRepository.search(query, PageRequest.of(from, size)).stream()
+            return itemRepository.search(query, getPageRequest(from, size)).stream()
                     .filter(Item::getAvailable)
                     .map(ItemMapper::toItemDto)
                     .collect(Collectors.toList());
@@ -162,5 +161,10 @@ public class ItemServiceImpl implements ItemService {
         }
         itemOutputDto.setComments(comments);
         return itemOutputDto;
+    }
+
+    private PageRequest getPageRequest(Integer from, Integer size){
+        int page = from < size ? 0 : from / size;
+        return PageRequest.of(page, size);
     }
 }

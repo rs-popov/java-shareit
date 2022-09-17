@@ -53,8 +53,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     public List<ItemRequestOutputDto> findAllRequestFromRequester(Long requesterId) {
         userRepository.findById(requesterId)
                 .orElseThrow(() -> new ObjectNotFoundException("Пользователь c id=" + requesterId + " не найден."));
-        List<ItemRequest> itemRequests = itemRequestRepository.findItemRequestsByRequestorId(requesterId);
-        return itemRequests.stream()
+        return itemRequestRepository.findItemRequestsByRequestorId(requesterId).stream()
                 .map(request -> ItemRequestMapper.itemRequestOutputDto(request, getItems(request.getId())))
                 .collect(Collectors.toList());
     }
@@ -63,7 +62,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     public List<ItemRequestOutputDto> findAllRequest(Long userId, Integer from, Integer size) {
         User requester = userRepository.findById(userId)
                 .orElseThrow(() -> new ObjectNotFoundException("Пользователь c id=" + userId + " не найден."));
-        return itemRequestRepository.findAll(PageRequest.of(from, size, Sort.by(Sort.Direction.ASC, "id"))).stream()
+        return itemRequestRepository.findAll(getPageRequest(from, size)).stream()
                 .filter(itemRequest -> !Objects.equals(itemRequest.getRequestor().getId(), requester.getId()))
                 .map(request -> ItemRequestMapper.itemRequestOutputDto(request, getItems(request.getId())))
                 .collect(Collectors.toList());
@@ -73,5 +72,10 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         return itemRepository.findItemByItemRequestId(requestId).stream()
                 .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
+    }
+
+    private PageRequest getPageRequest(Integer from, Integer size) {
+        int page = from < size ? 0 : from / size;
+        return PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "id"));
     }
 }

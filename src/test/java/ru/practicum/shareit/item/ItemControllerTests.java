@@ -1,5 +1,6 @@
 package ru.practicum.shareit.item;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,6 +8,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.web.util.NestedServletException;
 import ru.practicum.shareit.exceptions.ForbiddenAccessException;
 import ru.practicum.shareit.item.comment.dto.CommentDto;
@@ -62,12 +64,8 @@ public class ItemControllerTests {
     void createItem() throws Exception {
         ItemInputDto itemInputDto = ItemMapper.toItemDto(item);
         when(itemService.createItem(itemInputDto, 1L)).thenReturn(itemInputDto);
-        mvc.perform(post("/items")
-                        .content(mapper.writeValueAsString(itemInputDto))
-                        .header("X-Sharer-User-Id", 1L)
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
+
+        mvc.perform(createContentFromItemInputDto(post("/items"), itemInputDto, 1L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(itemInputDto.getId()), Long.class))
                 .andExpect(jsonPath("$.name", is(itemInputDto.getName())))
@@ -79,6 +77,7 @@ public class ItemControllerTests {
     void createItemWithoutUserIdHeader() throws Exception {
         ItemInputDto itemInputDto = ItemMapper.toItemDto(item);
         when(itemService.createItem(itemInputDto, 1L)).thenReturn(itemInputDto);
+
         mvc.perform(post("/items")
                         .content(mapper.writeValueAsString(itemInputDto))
                         .characterEncoding(StandardCharsets.UTF_8)
@@ -98,12 +97,8 @@ public class ItemControllerTests {
                 .available(true)
                 .build();
         when(itemService.updateItem(itemDto.getId(), itemInputDto, 1L)).thenReturn(itemOutput);
-        mvc.perform(patch("/items/" + itemDto.getId())
-                        .content(mapper.writeValueAsString(itemInputDto))
-                        .header("X-Sharer-User-Id", 1L)
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
+
+        mvc.perform(createContentFromItemInputDto(patch("/items/" + itemDto.getId()), itemInputDto, 1L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(itemOutput.getId()), Long.class))
                 .andExpect(jsonPath("$.name", is(itemOutput.getName())))
@@ -112,10 +107,10 @@ public class ItemControllerTests {
     }
 
     @Test
-    void updateItemNameByNonOwner_shouldThrowException() throws Exception {
+    void updateItemNameByNonOwnerShouldThrowException() throws Exception {
         ItemInputDto itemDto = ItemMapper.toItemDto(item);
         ItemInputDto itemInputDto = ItemInputDto.builder().name("NameUpdated").build();
-        ItemInputDto itemOutput = ItemInputDto.builder()
+        ItemInputDto.builder()
                 .id(1L)
                 .name("NameUpdated")
                 .description("ItemDesc")
@@ -123,12 +118,8 @@ public class ItemControllerTests {
                 .build();
         when(itemService.updateItem(itemDto.getId(), itemInputDto, 11L))
                 .thenThrow(new ForbiddenAccessException("Редактировать вещь может только её владелец."));
-        mvc.perform(patch("/items/" + itemDto.getId())
-                        .content(mapper.writeValueAsString(itemInputDto))
-                        .header("X-Sharer-User-Id", 11L)
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
+
+        mvc.perform(createContentFromItemInputDto(patch("/items/" + itemDto.getId()), itemInputDto, 11L))
                 .andExpect(status().isForbidden());
     }
 
@@ -143,6 +134,7 @@ public class ItemControllerTests {
                 .available(true)
                 .build();
         when(itemService.updateItem(itemDto.getId(), itemInputDto, 1L)).thenReturn(itemOutput);
+
         mvc.perform(patch("/items/" + itemDto.getId())
                         .content(mapper.writeValueAsString(itemInputDto))
                         .characterEncoding(StandardCharsets.UTF_8)
@@ -162,6 +154,7 @@ public class ItemControllerTests {
     void getAllItemsByOwner() throws Exception {
         when(itemService.getAllItemsByOwner(1L, 0, 2))
                 .thenReturn(List.of(ItemMapper.toItemOutputDto(item), ItemMapper.toItemOutputDto(anotherItem)));
+
         mvc.perform(get("/items")
                         .header("X-Sharer-User-Id", 1L)
                         .param("from", "0")
@@ -186,6 +179,7 @@ public class ItemControllerTests {
     @Test
     void getItemById() throws Exception {
         when(itemService.getItemById(anyLong(), anyLong())).thenReturn(ItemMapper.toItemOutputDto(item));
+
         mvc.perform(get("/items/" + item.getId())
                         .header("X-Sharer-User-Id", 1L))
                 .andExpect(status().isOk())
@@ -199,6 +193,7 @@ public class ItemControllerTests {
     void searchItems() throws Exception {
         when(itemService.searchItems(anyString(), anyInt(), anyInt()))
                 .thenReturn(List.of(ItemMapper.toItemDto(item), ItemMapper.toItemDto(anotherItem)));
+
         mvc.perform(get("/items/search")
                         .header("X-Sharer-User-Id", 1L)
                         .param("text", "Item")
@@ -242,5 +237,16 @@ public class ItemControllerTests {
                 .andExpect(jsonPath("$.id", is(comment.getId()), Long.class))
                 .andExpect(jsonPath("$.text", is(comment.getText())))
                 .andExpect(jsonPath("$.authorName", is(comment.getAuthorName())));
+    }
+
+    private MockHttpServletRequestBuilder createContentFromItemInputDto(MockHttpServletRequestBuilder builder,
+                                                                        ItemInputDto itemInputDto,
+                                                                        Long id) throws JsonProcessingException {
+        return builder
+                .content(mapper.writeValueAsString(itemInputDto))
+                .header("X-Sharer-User-Id", id)
+                .characterEncoding(StandardCharsets.UTF_8)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON);
     }
 }

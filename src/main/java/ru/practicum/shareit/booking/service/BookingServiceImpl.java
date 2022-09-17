@@ -86,8 +86,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingDto> getAllByBookerId(Long bookerId, String stateString, Integer from, Integer size) {
-        int page = from < size ? 0 : from / size;
-        Page<Booking> result = bookingRepository.findAllByBookerId(bookerId, PageRequest.of(page, size));
+        Page<Booking> result = bookingRepository.findAllByBookerId(bookerId, getPageRequest(from, size));
         if (result.isEmpty()) {
             log.info("Пользователь id={} не имеет бронирований", bookerId);
             throw new ObjectNotFoundException("Бронирований не найдено.");
@@ -100,8 +99,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingDto> getAllByOwnerId(Long ownerId, String stateString, Integer from, Integer size) {
-        int page = from < size ? 0 : from / size;
-        Page<Booking> result = bookingRepository.getAllByOwnerId(ownerId, PageRequest.of(page, size));
+        Page<Booking> result = bookingRepository.getAllByOwnerId(ownerId, getPageRequest(from, size));
         if (result.isEmpty()) {
             log.info("Пользователь id={} не имеет бронирований", ownerId);
             throw new ObjectNotFoundException("Бронирований не найдено.");
@@ -148,5 +146,10 @@ public class BookingServiceImpl implements BookingService {
             default:
                 throw new BadRequestException("Unknown state: UNSUPPORTED_STATUS");
         }
+    }
+
+    private PageRequest getPageRequest(Integer from, Integer size){
+        int page = from < size ? 0 : from / size;
+        return PageRequest.of(page, size);
     }
 }

@@ -21,7 +21,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class UserUnitTests {
+class UserServiceImplTests {
     @InjectMocks
     private UserServiceImpl userService;
     @Mock
@@ -62,13 +62,15 @@ class UserUnitTests {
     @Test
     void testCreateUser() {
         when(userRepository.save(any())).thenReturn(user);
+
         UserDto result = userService.createUser(userDto);
         assertEquals(result, userDto);
+
         verify(userRepository, times(1)).save(any());
     }
 
     @Test
-    void testCreateUserWithNoEmail_shouldThrowException() {
+    void testCreateUserWithNoEmailShouldThrowException() {
         BadRequestException exception = assertThrows(BadRequestException.class,
                 () -> userService.createUser(UserDto.builder()
                         .name("UserNameUpdate").build()));
@@ -83,10 +85,12 @@ class UserUnitTests {
                 .email("user@mail.ru")
                 .build());
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+
         UserDto result = userService.updateUser(1L, UserDto.builder()
                 .name("UserNameUpdate").build());
         assertEquals(result.getName(), "UserNameUpdate");
         assertEquals(result.getEmail(), "user@mail.ru");
+
         verify(userRepository, times(1)).save(any());
     }
 
@@ -98,38 +102,46 @@ class UserUnitTests {
                 .email("userUpdate@mail.ru")
                 .build());
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+
         UserDto result = userService.updateUser(1L, UserDto.builder()
                 .email("userUpdate@mail.ru").build());
         assertEquals(result.getName(), "UserName");
         assertEquals(result.getEmail(), "userUpdate@mail.ru");
+
         verify(userRepository, times(1)).save(any());
     }
 
     @Test
     void getUserById() {
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+
         UserDto result = userService.getUserById(anyLong());
         assertEquals(result.getName(), user.getName());
         assertEquals(result.getEmail(), user.getEmail());
+
         verify(userRepository, times(1)).findById(anyLong());
     }
 
     @Test
-    void getUserByIdWithUnknownId_shouldThrowException() {
+    void getUserByIdWithUnknownIdShouldThrowException() {
         when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
+
         ObjectNotFoundException exception = assertThrows(ObjectNotFoundException.class,
                 () -> userService.getUserById(11L));
         assertEquals("Пользователь c id=11 не найден.", exception.getMessage());
+
         verify(userRepository, times(1)).findById(anyLong());
     }
 
     @Test
     void getAllUsers() {
         when(userRepository.findAll()).thenReturn(List.of(user, user2));
+
         List<UserDto> result = userService.getAllUsers();
         assertEquals(user.getId(), result.get(0).getId());
         assertEquals(user2.getId(), result.get(1).getId());
         assertEquals(result.size(), 2);
+
         verify(userRepository, times(1)).findAll();
     }
 

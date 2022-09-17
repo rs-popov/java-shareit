@@ -37,7 +37,7 @@ import static org.hamcrest.Matchers.nullValue;
         properties = "db.name=test",
         webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-public class ItemIntegrationTests {
+public class ItemControllerIntegrationTest {
     private final EntityManager entityManager;
     private final ItemService itemService;
     private final UserService userService;
@@ -126,6 +126,7 @@ public class ItemIntegrationTests {
 
     @Test
     public void createComment() {
+        final LocalDateTime date = LocalDateTime.now();
         User booker = User.builder()
                 .id(10L)
                 .name("BookerName")
@@ -134,7 +135,7 @@ public class ItemIntegrationTests {
                 .id(1L)
                 .text("this is comment")
                 .authorName(booker.getName())
-                .created(LocalDateTime.now().plusDays(1))
+                .created(date.plusDays(1))
                 .build();
         UserDto ownerCreated = userService.createUser(UserMapper.toUserDto(owner));
         ItemInputDto createdItem = itemService.createItem(ItemMapper.toItemDto(item), ownerCreated.getId());
@@ -142,13 +143,14 @@ public class ItemIntegrationTests {
         BookingDto bookingCreated = bookingService.addBooking(bookerCreated.getId(), InputBookingDto.builder()
                 .id(1L)
                 .itemId(createdItem.getId())
-                .start(LocalDateTime.now().minusDays(1))
-                .end(LocalDateTime.now().minusHours(1))
+                .start(date.minusDays(1))
+                .end(date.minusHours(1))
                 .build());
         bookingService.approveBooking(ownerCreated.getId(), bookingCreated.getId(), true);
         CommentDto commentCreated = itemService.createComment(bookerCreated.getId(),
                 createdItem.getId(), comment);
         assertThat(commentCreated, notNullValue());
+
         TypedQuery<Comment> query = entityManager.createQuery(
                 "select c from Comment c where c.id = : id", Comment.class);
         Comment comment1 = query.setParameter("id", commentCreated.getId())

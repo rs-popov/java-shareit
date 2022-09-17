@@ -11,9 +11,9 @@ import java.util.List;
 @Data
 @Builder
 public class ItemRequestOutputDto {
-    Long id;
+    private Long id;
     @NonNull
-    String description;
-    LocalDateTime created;
-    List<ItemInputDto> items;
+    private String description;
+    private LocalDateTime created;
+    private List<ItemInputDto> items;
 }

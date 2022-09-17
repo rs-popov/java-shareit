@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Data
 @Builder
 public class ItemRequestDto {
-    Long id;
+    private Long id;
     @NonNull String description;
-    LocalDateTime created;
+    private LocalDateTime created;
 }

@@ -30,7 +30,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class RequestsUnitTests {
+public class ItemRequestsServiceImplTests {
 
     @InjectMocks
     private ItemRequestServiceImpl itemRequestService;
@@ -80,17 +80,20 @@ public class RequestsUnitTests {
     void createRequest() {
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(requester));
         when(itemRequestRepository.save(any())).thenReturn(itemRequest);
+
         ItemRequestDto createdItemRequest = itemRequestService.createRequest(requester.getId(),
                 ItemRequestMapper.toItemRequestDto(itemRequest));
         assertNotEquals(createdItemRequest, null);
         assertEquals(createdItemRequest.getId(), itemRequest.getId());
         assertEquals(createdItemRequest.getDescription(), itemRequest.getDescription());
+
         verify(itemRequestRepository, times(1)).save(any());
     }
 
     @Test
-    void createRequestWhenUnknownRequester_shouldThrowException() {
+    void createRequestWhenUnknownRequesterShouldThrowException() {
         when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
+
         ObjectNotFoundException exception = assertThrows(ObjectNotFoundException.class,
                 () -> itemRequestService.createRequest(requester.getId(),
                         ItemRequestMapper.toItemRequestDto(itemRequest)));
@@ -102,15 +105,18 @@ public class RequestsUnitTests {
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(requester));
         when(itemRequestRepository.findById(anyLong())).thenReturn(Optional.ofNullable(itemRequest));
         when(itemRepository.findItemByItemRequestId(anyLong())).thenReturn(List.of(item, anotherItem));
+
         ItemRequestOutputDto foundItemRequest = itemRequestService.findRequestById(1L, 1L);
         assertNotEquals(foundItemRequest, null);
         assertEquals(foundItemRequest.getDescription(), itemRequest.getDescription());
+
         verify(itemRequestRepository, times(1)).findById(anyLong());
     }
 
     @Test
     void findRequestByIdWithUserUnknown() {
         when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
+
         ObjectNotFoundException exception = assertThrows(ObjectNotFoundException.class,
                 () -> itemRequestService.findRequestById(1L, 1L));
         assertEquals("Пользователь c id=" + 1 + " не найден.", exception.getMessage());
@@ -120,6 +126,7 @@ public class RequestsUnitTests {
     void findRequestByIdWithRequestUnknown() {
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(requester));
         when(itemRequestRepository.findById(anyLong())).thenReturn(Optional.empty());
+
         ObjectNotFoundException exception = assertThrows(ObjectNotFoundException.class,
                 () -> itemRequestService.findRequestById(1L, 1L));
         assertEquals("Запрос c id=" + 1 + " не найден.", exception.getMessage());
@@ -131,16 +138,19 @@ public class RequestsUnitTests {
         when(itemRequestRepository.findAll(PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "id"))))
                 .thenReturn(new PageImpl<ItemRequest>(List.of(itemRequest, anotherItemRequest)));
         when(itemRepository.findItemByItemRequestId(anyLong())).thenReturn(List.of(item, anotherItem));
+
         List<ItemRequestOutputDto> foundItemRequest = itemRequestService.findAllRequest(2L, 0, 10);
         assertNotEquals(foundItemRequest, null);
         assertEquals(1, foundItemRequest.size());
         assertEquals(anotherItemRequest.getDescription(), foundItemRequest.get(0).getDescription());
+
         verify(itemRequestRepository, times(1)).findAll(PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "id")));
     }
 
     @Test
     void findAllRequestWithUserUnknown() {
         when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
+
         ObjectNotFoundException exception = assertThrows(ObjectNotFoundException.class,
                 () -> itemRequestService.findRequestById(1L, 1L));
         assertEquals("Пользователь c id=" + 1 + " не найден.", exception.getMessage());

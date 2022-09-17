@@ -24,7 +24,7 @@ import static org.hamcrest.Matchers.*;
         properties = "db.name=test",
         webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-public class UserIntegrationTests {
+public class UserControllerIntegrationTest {
     private final EntityManager entityManager;
     private final UserService userService;
 
@@ -46,6 +46,7 @@ public class UserIntegrationTests {
                 "select u from User u where u.id = : id", User.class);
         User user = query.setParameter("id", createdUser.getId())
                 .getSingleResult();
+
         assertThat(user.getId(), notNullValue());
         assertThat(user.getName(), equalTo(userDto.getName()));
         assertThat(user.getEmail(), equalTo(userDto.getEmail()));
@@ -55,6 +56,7 @@ public class UserIntegrationTests {
     void getUserById() {
         UserDto createdUser = userService.createUser(userDto);
         UserDto userFromGet = userService.getUserById(createdUser.getId());
+
         assertThat(userFromGet, notNullValue());
         assertThat(userFromGet.getName(), equalTo(userDto.getName()));
         assertThat(userFromGet.getEmail(), equalTo(userDto.getEmail()));
@@ -65,6 +67,7 @@ public class UserIntegrationTests {
         userService.createUser(userDto);
         userService.createUser(anotherUserDto);
         List<UserDto> users = userService.getAllUsers();
+
         assertThat(users, hasSize(2));
         assertThat(users.get(0).getName(), equalTo(userDto.getName()));
         assertThat(users.get(1).getName(), equalTo(anotherUserDto.getName()));
@@ -79,10 +82,12 @@ public class UserIntegrationTests {
                 .name("nameUpdate").build());
         UserDto updateUserFromGet = userService.getUserById(updatedUser.getId());
         assertThat(updateUserFromGet, notNullValue());
+
         TypedQuery<User> query = entityManager.createQuery(
                 "select u from User u where u.id = : id", User.class);
         User user = query.setParameter("id", updatedUser.getId())
                 .getSingleResult();
+
         assertThat(user.getId(), notNullValue());
         assertThat(user.getName(), equalTo("nameUpdate"));
     }
