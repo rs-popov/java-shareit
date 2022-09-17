@@ -163,7 +163,7 @@ public class ItemServiceImpl implements ItemService {
         return itemOutputDto;
     }
 
-    private PageRequest getPageRequest(Integer from, Integer size){
+    private PageRequest getPageRequest(Integer from, Integer size) {
         int page = from < size ? 0 : from / size;
         return PageRequest.of(page, size);
     }

@@ -69,7 +69,7 @@ public class BookingControllerIntegrationTest {
     private ItemInputDto createdAnotherItem;
 
     @BeforeEach
-    void doBeforeEach(){
+    void doBeforeEach() {
         ownerCreated = userService.createUser(UserMapper.toUserDto(owner));
         bookerCreated = userService.createUser(UserMapper.toUserDto(booker));
         createdItem = itemService.createItem(ItemMapper.toItemDto(item), ownerCreated.getId());
