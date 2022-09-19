@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.comment.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemInputDto;
@@ -9,8 +10,10 @@ import ru.practicum.shareit.item.service.ItemService;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
+@Validated
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/items")
@@ -19,8 +22,12 @@ public class ItemController {
     private static final String USERID = "X-Sharer-User-Id";
 
     @GetMapping
-    public List<ItemOutputDto> getAllItemsByOwner(@RequestHeader(USERID) Long ownerId) {
-        return itemService.getAllItemsByOwner(ownerId);
+    public List<ItemOutputDto> getAllItemsByOwner(@RequestHeader(USERID) Long ownerId,
+                                                  @RequestParam(required = false, defaultValue = "0")
+                                                  @PositiveOrZero Integer from,
+                                                  @RequestParam(required = false, defaultValue = "20")
+                                                  @PositiveOrZero Integer size) {
+        return itemService.getAllItemsByOwner(ownerId, from, size);
     }
 
     @GetMapping("{itemId}")
@@ -30,8 +37,12 @@ public class ItemController {
     }
 
     @GetMapping("search")
-    public List<ItemInputDto> searchItems(@RequestParam String text) {
-        return itemService.searchItems(text);
+    public List<ItemInputDto> searchItems(@RequestParam String text,
+                                          @RequestParam(required = false, defaultValue = "0")
+                                          @PositiveOrZero Integer from,
+                                          @RequestParam(required = false, defaultValue = "20")
+                                          @PositiveOrZero Integer size) {
+        return itemService.searchItems(text, from, size);
     }
 
     @PostMapping

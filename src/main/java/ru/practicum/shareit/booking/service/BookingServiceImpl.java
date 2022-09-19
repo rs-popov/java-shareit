@@ -2,6 +2,8 @@ package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingMapper;
@@ -83,26 +85,26 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingDto> getAllByBookerId(Long bookerId, String stateString) {
-        List<Booking> result = bookingRepository.findAllByBookerId(bookerId);
+    public List<BookingDto> getAllByBookerId(Long bookerId, String stateString, Integer from, Integer size) {
+        Page<Booking> result = bookingRepository.findAllByBookerId(bookerId, getPageRequest(from, size));
         if (result.isEmpty()) {
             log.info("Пользователь id={} не имеет бронирований", bookerId);
             throw new ObjectNotFoundException("Бронирований не найдено.");
         } else {
-            return filterByState(result, toState(stateString)).stream()
+            return filterByState(result.toList(), toState(stateString)).stream()
                     .map(BookingMapper::toBookingDto)
                     .collect(Collectors.toList());
         }
     }
 
     @Override
-    public List<BookingDto> getAllByOwnerId(Long ownerId, String stateString) {
-        List<Booking> result = bookingRepository.getAllByOwnerId(ownerId);
+    public List<BookingDto> getAllByOwnerId(Long ownerId, String stateString, Integer from, Integer size) {
+        Page<Booking> result = bookingRepository.getAllByOwnerId(ownerId, getPageRequest(from, size));
         if (result.isEmpty()) {
             log.info("Пользователь id={} не имеет бронирований", ownerId);
             throw new ObjectNotFoundException("Бронирований не найдено.");
         } else {
-            return filterByState(result, toState(stateString)).stream()
+            return filterByState(result.toList(), toState(stateString)).stream()
                     .map(BookingMapper::toBookingDto)
                     .collect(Collectors.toList());
         }
@@ -144,5 +146,10 @@ public class BookingServiceImpl implements BookingService {
             default:
                 throw new BadRequestException("Unknown state: UNSUPPORTED_STATUS");
         }
+    }
+
+    private PageRequest getPageRequest(Integer from, Integer size) {
+        int page = from < size ? 0 : from / size;
+        return PageRequest.of(page, size);
     }
 }
