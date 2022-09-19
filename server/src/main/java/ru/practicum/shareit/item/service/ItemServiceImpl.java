@@ -28,6 +28,7 @@ import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -46,6 +47,7 @@ public class ItemServiceImpl implements ItemService {
     public List<ItemOutputDto> getAllItemsByOwner(Long ownerId, Integer from, Integer size) {
         return itemRepository.findAll(getPageRequest(from, size)).stream()
                 .filter(item -> Objects.equals(item.getOwner().getId(), ownerId))
+                .sorted(Comparator.comparing(Item::getId))
                 .map(item -> convertToItemOutputDto(item, ownerId))
                 .collect(Collectors.toList());
     }
