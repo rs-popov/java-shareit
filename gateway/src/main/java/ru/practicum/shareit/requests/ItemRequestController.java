@@ -44,10 +44,8 @@ public class ItemRequestController {
 
     @GetMapping("/all")
     public ResponseEntity<Object> getAllRequests(@RequestHeader(USERID) Long userId,
-                                                 @RequestParam(required = false, defaultValue = "0")
-                                                 @PositiveOrZero Integer from,
-                                                 @RequestParam(required = false, defaultValue = "20")
-                                                 @Positive Integer size) {
+                                                 @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
+                                                 @RequestParam(defaultValue = "20") @Positive Integer size) {
         log.info("Get requests by owner with userId={}", userId);
         return itemRequestClient.getAllRequests(userId, from, size);
     }

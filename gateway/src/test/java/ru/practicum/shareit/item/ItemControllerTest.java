@@ -27,6 +27,7 @@ class ItemControllerTest {
     private MockMvc mvc;
     @MockBean
     private ItemClient itemClient;
+    private static final String USERID = "X-Sharer-User-Id";
 
     private final ItemInputDto item = ItemInputDto.builder()
             .name("ItemName")
@@ -75,7 +76,7 @@ class ItemControllerTest {
     @Test
     void getAllItemsByOwner() throws Exception {
         mvc.perform(get("/items")
-                        .header("X-Sharer-User-Id", 1L)
+                        .header(USERID, 1L)
                         .param("from", "0")
                         .param("size", "2"))
                 .andExpect(status().isOk());
@@ -104,14 +105,14 @@ class ItemControllerTest {
     @Test
     void getItemById() throws Exception {
         mvc.perform(get("/items/" + 1)
-                        .header("X-Sharer-User-Id", 1L))
+                        .header(USERID, 1L))
                 .andExpect(status().isOk());
     }
 
     @Test
     void searchItems() throws Exception {
         mvc.perform(get("/items/search")
-                        .header("X-Sharer-User-Id", 1L)
+                        .header(USERID, 1L)
                         .param("text", "Item")
                         .param("from", "0")
                         .param("size", "2"))
@@ -127,7 +128,7 @@ class ItemControllerTest {
 
         mvc.perform(post("/items/" + 1 + "/comment")
                         .content(mapper.writeValueAsString(comment))
-                        .header("X-Sharer-User-Id", 1L)
+                        .header(USERID, 1L)
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
@@ -139,7 +140,7 @@ class ItemControllerTest {
                                                                         Long id) throws JsonProcessingException {
         return builder
                 .content(mapper.writeValueAsString(itemInputDto))
-                .header("X-Sharer-User-Id", id)
+                .header(USERID, id)
                 .characterEncoding(StandardCharsets.UTF_8)
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON);
@@ -150,7 +151,7 @@ class ItemControllerTest {
                                                                       String from,
                                                                       String size) throws JsonProcessingException {
         return builder
-                .header("X-Sharer-User-Id", id)
+                .header(USERID, id)
                 .param("from", from)
                 .param("size", size);
     }

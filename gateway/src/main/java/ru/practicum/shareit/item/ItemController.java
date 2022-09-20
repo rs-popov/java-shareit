@@ -25,10 +25,8 @@ public class ItemController {
 
     @GetMapping
     public ResponseEntity<Object> getAllItemsByOwner(@RequestHeader(USERID) Long ownerId,
-                                                     @RequestParam(required = false, defaultValue = "0")
-                                                     @PositiveOrZero Integer from,
-                                                     @RequestParam(required = false, defaultValue = "20")
-                                                     @Positive Integer size) {
+                                                     @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
+                                                     @RequestParam(defaultValue = "20") @Positive Integer size) {
         log.info("Get all items by owner, userId={}, from={}, size={}", ownerId, from, size);
         return itemClient.getAllItemsByOwner(ownerId, from, size);
     }
@@ -43,10 +41,8 @@ public class ItemController {
     @GetMapping("search")
     public ResponseEntity<Object> searchItems(@RequestHeader(USERID) Long userId,
                                               @RequestParam String text,
-                                              @RequestParam(required = false, defaultValue = "0")
-                                              @PositiveOrZero Integer from,
-                                              @RequestParam(required = false, defaultValue = "20")
-                                              @Positive Integer size) {
+                                              @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
+                                              @RequestParam(defaultValue = "20") @Positive Integer size) {
         log.info("Search items by query={}, userId={}, from={}, size={}", text, userId, from, size);
         return itemClient.searchItems(userId, text, from, size);
     }

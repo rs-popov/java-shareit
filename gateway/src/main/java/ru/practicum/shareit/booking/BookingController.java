@@ -27,11 +27,9 @@ public class BookingController {
 
     @GetMapping
     public ResponseEntity<Object> getAllByBookerId(@RequestHeader(USERID) Long bookerId,
-                                                   @RequestParam(name = "state", defaultValue = "all") String state,
-                                                   @PositiveOrZero
-                                                   @RequestParam(name = "from", defaultValue = "0") Integer from,
-                                                   @Positive
-                                                   @RequestParam(name = "size", defaultValue = "10") Integer size) {
+                                                   @RequestParam(defaultValue = "all") String state,
+                                                   @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
+                                                   @Positive @RequestParam(defaultValue = "10") Integer size) {
         BookingState bookingState = BookingState.from(state)
                 .orElseThrow(() -> new BadRequestException("Unknown state: " + state));
         log.info("Get booking with state {}, userId={}, from={}, size={}", state, bookerId, from, size);
@@ -40,11 +38,9 @@ public class BookingController {
 
     @GetMapping("/owner")
     public ResponseEntity<Object> getAllByOwnerId(@RequestHeader(USERID) Long ownerId,
-                                                  @RequestParam(name = "state", defaultValue = "all") String state,
-                                                  @PositiveOrZero
-                                                  @RequestParam(name = "from", defaultValue = "0") Integer from,
-                                                  @Positive
-                                                  @RequestParam(name = "size", defaultValue = "10") Integer size) {
+                                                  @RequestParam(defaultValue = "all") String state,
+                                                  @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
+                                                  @Positive @RequestParam(defaultValue = "10") Integer size) {
         BookingState bookingState = BookingState.from(state)
                 .orElseThrow(() -> new BadRequestException("Unknown state: " + state));
         log.info("Get booking by owner with state {}, userId={}, from={}, size={}", state, ownerId, from, size);

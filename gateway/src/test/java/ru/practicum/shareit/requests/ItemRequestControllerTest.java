@@ -26,6 +26,7 @@ class ItemRequestControllerTest {
     private MockMvc mvc;
     @MockBean
     private ItemRequestClient itemRequestClient;
+    private static final String USERID = "X-Sharer-User-Id";
 
     private final ItemRequestDto itemRequest = ItemRequestDto.builder()
             .description("itemRequestDescription")
@@ -36,7 +37,7 @@ class ItemRequestControllerTest {
     void createRequest() throws Exception {
         mvc.perform(post("/requests")
                         .content(mapper.writeValueAsString(itemRequest))
-                        .header("X-Sharer-User-Id", 1L)
+                        .header(USERID, 1L)
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
@@ -57,7 +58,7 @@ class ItemRequestControllerTest {
     void createRequestWithInvalidInputRequest() throws Exception {
         mvc.perform(post("/requests")
                         .content(mapper.writeValueAsString(null))
-                        .header("X-Sharer-User-Id", 1L)
+                        .header(USERID, 1L)
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
@@ -67,7 +68,7 @@ class ItemRequestControllerTest {
     @Test
     void getRequestById() throws Exception {
         mvc.perform(get("/requests/" + 1L)
-                        .header("X-Sharer-User-Id", 1L))
+                        .header(USERID, 1L))
                 .andExpect(status().isOk());
     }
 
@@ -80,7 +81,7 @@ class ItemRequestControllerTest {
     @Test
     void getAllRequestsFromRequester() throws Exception {
         mvc.perform(get("/requests")
-                        .header("X-Sharer-User-Id", 1L))
+                        .header(USERID, 1L))
                 .andExpect(status().isOk());
     }
 
@@ -93,7 +94,7 @@ class ItemRequestControllerTest {
     @Test
     void getAllRequests() throws Exception {
         mvc.perform(get("/requests/all")
-                        .header("X-Sharer-User-Id", 1L)
+                        .header(USERID, 1L)
                         .param("from", "0")
                         .param("size", "2"))
                 .andExpect(status().isOk());
@@ -102,7 +103,7 @@ class ItemRequestControllerTest {
     @Test
     void getAllRequestsWithoutParam() throws Exception {
         mvc.perform(get("/requests/all")
-                        .header("X-Sharer-User-Id", 1L))
+                        .header(USERID, 1L))
                 .andExpect(status().isOk());
     }
 
@@ -116,7 +117,7 @@ class ItemRequestControllerTest {
     void shouldReturnErrorWhenGetAllRequestsWithWrongFromParam() {
         NestedServletException exception = assertThrows(NestedServletException.class,
                 () -> mvc.perform(get("/requests/all")
-                        .header("X-Sharer-User-Id", 1L)
+                        .header(USERID, 1L)
                         .param("from", "-1")
                         .param("size", "2")));
         assertTrue(exception.getMessage().contains("must be greater than or equal to 0"));
@@ -126,7 +127,7 @@ class ItemRequestControllerTest {
     void shouldReturnErrorWhenGetAllRequestsWithWrongSizeParam() throws Exception {
         NestedServletException exception = assertThrows(NestedServletException.class,
                 () -> mvc.perform(get("/requests/all")
-                        .header("X-Sharer-User-Id", 1L)
+                        .header(USERID, 1L)
                         .param("from", "0")
                         .param("size", "0")));
         assertTrue(exception.getMessage().contains("must be greater than 0"));

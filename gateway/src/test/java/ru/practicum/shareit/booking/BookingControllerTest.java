@@ -28,24 +28,20 @@ class BookingControllerTest {
     private MockMvc mvc;
     @MockBean
     private BookingClient bookingClient;
-
     private final LocalDateTime date = LocalDateTime.now();
-    private final InputBookingDto bookingInputDto = InputBookingDto.builder()
-            .start(date.plusDays(1))
-            .end(date.plusDays(1))
-            .itemId(1L)
-            .build();
+    private static final String USERID = "X-Sharer-User-Id";
 
     @Test
     void addBooking() throws Exception {
-        mvc.perform(createContentFromInputBookingDto(post("/bookings"), bookingInputDto, 2L))
+        mvc.perform(createContentFromInputBookingDto(post("/bookings"),
+                        getBookingDto(date.plusDays(1), date.plusDays(2)), 2L))
                 .andExpect(status().isOk());
     }
 
     @Test
     void shouldReturnErrorWhenAddBookingWithoutUserIdHeader() throws Exception {
         mvc.perform(post("/bookings")
-                        .content(mapper.writeValueAsString(bookingInputDto))
+                        .content(mapper.writeValueAsString(getBookingDto(date.plusDays(1), date.plusDays(2))))
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
@@ -54,30 +50,22 @@ class BookingControllerTest {
 
     @Test
     void shouldReturnErrorWhenAddBookingWithWrongStartDate() throws Exception {
-        final InputBookingDto bookingInputDto = InputBookingDto.builder()
-                .start(date.minusDays(1))
-                .end(date.plusDays(1))
-                .itemId(1L)
-                .build();
-        mvc.perform(createContentFromInputBookingDto(post("/bookings"), bookingInputDto, 2L))
+        mvc.perform(createContentFromInputBookingDto(post("/bookings"),
+                        getBookingDto(date.minusDays(1), date.plusDays(1)), 2L))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void shouldReturnErrorWhenAddBookingWithWrongEndDate() throws Exception {
-        final InputBookingDto bookingInputDto = InputBookingDto.builder()
-                .start(date.plusDays(1))
-                .end(date.minusDays(1))
-                .itemId(1L)
-                .build();
-        mvc.perform(createContentFromInputBookingDto(post("/bookings"), bookingInputDto, 2L))
+        mvc.perform(createContentFromInputBookingDto(post("/bookings"),
+                        getBookingDto(date.plusDays(1), date.minusDays(1)), 2L))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void approveBooking() throws Exception {
         mvc.perform(patch("/bookings/" + 1L)
-                        .header("X-Sharer-User-Id", 1L)
+                        .header(USERID, 1L)
                         .param("approved", "true"))
                 .andExpect(status().isOk());
     }
@@ -92,7 +80,7 @@ class BookingControllerTest {
     @Test
     void getById() throws Exception {
         mvc.perform(get("/bookings/" + 1L)
-                        .header("X-Sharer-User-Id", 1L))
+                        .header(USERID, 1L))
                 .andExpect(status().isOk());
     }
 
@@ -109,7 +97,7 @@ class BookingControllerTest {
     @Test
     void getAllByBookerIdWithoutParam() throws Exception {
         mvc.perform(get("/bookings")
-                        .header("X-Sharer-User-Id", 2L))
+                        .header(USERID, 2L))
                 .andExpect(status().isOk());
     }
 
@@ -180,7 +168,7 @@ class BookingControllerTest {
     @Test
     void getAllByOwnerIdWithoutParam() throws Exception {
         mvc.perform(get("/bookings/owner")
-                        .header("X-Sharer-User-Id", 1L)
+                        .header(USERID, 1L)
                 )
                 .andExpect(status().isOk());
     }
@@ -200,7 +188,7 @@ class BookingControllerTest {
                                                                            Long id) throws JsonProcessingException {
         return builder
                 .content(mapper.writeValueAsString(inputBookingDto))
-                .header("X-Sharer-User-Id", id)
+                .header(USERID, id)
                 .characterEncoding(StandardCharsets.UTF_8)
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON);
@@ -212,9 +200,17 @@ class BookingControllerTest {
                                                                       String from,
                                                                       String size) throws JsonProcessingException {
         return builder
-                .header("X-Sharer-User-Id", id)
+                .header(USERID, id)
                 .param("state", state)
                 .param("from", from)
                 .param("size", size);
+    }
+
+    private InputBookingDto getBookingDto(LocalDateTime start, LocalDateTime end) {
+        return InputBookingDto.builder()
+                .start(start)
+                .end(end)
+                .itemId(1L)
+                .build();
     }
 }

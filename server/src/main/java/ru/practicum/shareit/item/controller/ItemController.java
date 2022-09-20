@@ -20,8 +20,8 @@ public class ItemController {
 
     @GetMapping
     public List<ItemOutputDto> getAllItemsByOwner(@RequestHeader(USERID) Long ownerId,
-                                                  @RequestParam(required = false, defaultValue = "0") Integer from,
-                                                  @RequestParam(required = false, defaultValue = "20") Integer size) {
+                                                  @RequestParam(defaultValue = "0") Integer from,
+                                                  @RequestParam(defaultValue = "20") Integer size) {
         return itemService.getAllItemsByOwner(ownerId, from, size);
     }
 
@@ -34,8 +34,8 @@ public class ItemController {
     @GetMapping("search")
     public List<ItemInputDto> searchItems(@RequestHeader(USERID) Long userId,
                                           @RequestParam String text,
-                                          @RequestParam(required = false, defaultValue = "0") Integer from,
-                                          @RequestParam(required = false, defaultValue = "20") Integer size) {
+                                          @RequestParam(defaultValue = "0") Integer from,
+                                          @RequestParam(defaultValue = "20") Integer size) {
         return itemService.searchItems(text, from, size);
     }
 
